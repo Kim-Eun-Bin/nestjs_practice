@@ -1,14 +1,15 @@
-import { Controller, Get, Query, Redirect, Req } from "@nestjs/common";
+import { Controller, Get, Query, Redirect, Req } from '@nestjs/common';
 import { AppService } from './app.service';
 import { Request } from 'express';
+import { ConfigService } from '@nestjs/config';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(private readonly appService: AppService, private readonly configService: ConfigService) {}
 
   @Get()
-  getHello(@Req() req: Request): string {
-    console.log(req);
+  getHello(): string {
+    console.log(this.configService.get('DATABASE_HOST'));
     return this.appService.getHello();
   }
 
