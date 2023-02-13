@@ -1,6 +1,5 @@
-import { Controller, Get, Query, Redirect, Req } from '@nestjs/common';
+import { Controller, Get, Query, Redirect } from '@nestjs/common';
 import { AppService } from './app.service';
-import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
 
 @Controller()
@@ -9,7 +8,6 @@ export class AppController {
 
   @Get()
   getHello(): string {
-    console.log(this.configService.get('DATABASE_HOST'));
     return this.appService.getHello();
   }
 
