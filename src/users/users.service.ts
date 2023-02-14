@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as uuid from 'uuid';
@@ -6,10 +6,15 @@ import { EmailService } from '../email/email.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from './entities/user.entity';
 import { Repository } from 'typeorm';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable()
 export class UsersService {
-  constructor(private emailService: EmailService, @InjectRepository(UserEntity) private usersRepository: Repository<UserEntity>) {}
+  constructor(
+    private emailService: EmailService,
+    @InjectRepository(UserEntity) private usersRepository: Repository<UserEntity>,
+    private authService: AuthService,
+  ) {}
 
   async createUser(name: string, email: string, password: string) {
     const userExist = await this.checkUserExists(email);
@@ -24,7 +29,7 @@ export class UsersService {
     await this.sendMemberJoinEmail(email, signupVerifyToken);
   }
 
-  async verifyEmail(signupVerifyToken: string): Promise<string> {
+  async verifyEmail(signupVerifyToken: string) {
     const user = await this.usersRepository.findOne({
       where: { signupVerifyToken },
     });
@@ -33,11 +38,7 @@ export class UsersService {
       throw new NotFoundException('유저가 존재하지 않습니다');
     }
 
-    return this.authService.login({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-    });
+    //
   }
 
   private async saveUser(name: string, email: string, password: string, signupVerifyToken: string) {
@@ -55,11 +56,7 @@ export class UsersService {
   }
 
   private async checkUserExists(email: string) {
-    const user = await this.usersRepository.findOne({
-      where: { email: email },
-    });
-
-    return user;
+    return await this.findOneByEmail(email);
   }
 
   create(createUserDto: CreateUserDto) {
@@ -68,6 +65,10 @@ export class UsersService {
 
   findAll() {
     return `This action returns all users`;
+  }
+
+  async findOneByEmail(email: string) {
+    return await this.usersRepository.findOne({ where: { email } });
   }
 
   findOne(id: number) {

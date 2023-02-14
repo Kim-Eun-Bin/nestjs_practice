@@ -1,23 +1,15 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { ConfigType } from '@nestjs/config';
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-}
+import { Injectable } from '@nestjs/common';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class AuthService {
-  constructor(@Inject(authConfig.KEY) private config: ConfigType<typeof authConfig>) {}
+  constructor(private usersService: UsersService) {}
 
-  login(user: User) {
-    const payload = { ...user };
-
-    return jwt.sign(payload, this.config.jwtSecret, {
-      expiresIn: '1d',
-      audience: 'example.com',
-      issuer: 'example.com',
-    });
+  async validateUser(username: string, pass: string): Promise<any> {
+    const user = await this.usersService.findOneByEmail(username);
+    if (user && user.password === pass) {
+      return true;
+    }
+    return null;
   }
 }

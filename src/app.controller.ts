@@ -1,10 +1,10 @@
-import { Controller, Get, Query, Redirect } from '@nestjs/common';
+import { Controller, Get, Post, Query, Redirect, UseGuards, Request } from '@nestjs/common';
 import { AppService } from './app.service';
-import { ConfigService } from '@nestjs/config';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService, private readonly configService: ConfigService) {}
+  constructor(private readonly appService: AppService) {}
 
   @Get()
   getHello(): string {
@@ -17,5 +17,11 @@ export class AppController {
     if (version && version === '5') {
       return { url: 'https://docs.nestjs.com/v5/' };
     }
+  }
+
+  @UseGuards(AuthGuard('local'))
+  @Post('auth/login')
+  async login(@Request() req) {
+    return req.user;
   }
 }
